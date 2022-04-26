@@ -1,0 +1,15 @@
+---
+title: "nbaplayers"
+author: "Ian Thorpe"
+date: "4/26/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+player_data <- read.csv('final_df.csv')
+```
+
