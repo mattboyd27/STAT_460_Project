@@ -10,6 +10,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-player_data <- read.csv('final_df.csv')
+library(dplyr)
+```
+
+
+```{r}
+player_data <- read.csv('final_df.csv') %>%
+  na.omit() %>%
+  select(-c(TM, POS, player_name, X))
+```
+
+```{r}
+colMeans(player_data)
 ```
 
