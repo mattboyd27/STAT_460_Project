@@ -17,8 +17,7 @@ library(car)
 
 ```{r}
 player_data <- read.csv('final_df.csv') %>%
-  na.omit() %>%
-  select(-c(TM, X))
+  na.omit()
 ```
 
 ```{r}
@@ -39,6 +38,9 @@ t_crit <- (n-1) * p / (n-p) * qf(p = 1-alpha, df1 = p, df2 = n-p)
 plot(center_data[ , 1], center_data[ , 2], xlab = "Raptor Offense", ylab = "Raptor Defense")
 points(center_means[1], center_means[2], pch = 4, cex = 1.3, col = "gray30")
 points(ellipse(center = center_means, shape = center_cov, radius = sqrt(t_crit/n), draw = FALSE), type = 'l')
-points(8.590943, 5.868475, col = 'red')
+points(8.590943, 5.868475, col = 'blue')
+text(8.5, 7, 'Jokic')
+points(3.9, 3.7, col = 'red')
+text(3.9, 5, 'Embiid')
 ```
 
