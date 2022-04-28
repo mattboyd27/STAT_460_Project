@@ -11,16 +11,34 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(dplyr)
+library(car)
 ```
 
 
 ```{r}
 player_data <- read.csv('final_df.csv') %>%
   na.omit() %>%
-  select(-c(TM, POS, player_name, X))
+  select(-c(TM, X))
 ```
 
 ```{r}
-colMeans(player_data)
+center_data <- player_data %>%
+  filter(POS == 'C') %>%
+  select(c(raptor_offense, raptor_defense))
+
+center_means <- colMeans(center_data)
+center_cov <- cov(center_data)
+
+n = dim(center_data)[1]
+p = dim(center_data)[2]
+alpha = 0.05
+
+
+
+t_crit <- (n-1) * p / (n-p) * qf(p = 1-alpha, df1 = p, df2 = n-p)
+plot(center_data[ , 1], center_data[ , 2], xlab = "Raptor Offense", ylab = "Raptor Defense")
+points(center_means[1], center_means[2], pch = 4, cex = 1.3, col = "gray30")
+points(ellipse(center = center_means, shape = center_cov, radius = sqrt(t_crit/n), draw = FALSE), type = 'l')
+points(8.590943, 5.868475, col = 'red')
 ```
 
