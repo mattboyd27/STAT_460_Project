@@ -42,5 +42,6 @@ points(8.590943, 5.868475, col = 'blue')
 text(8.5, 7, 'Jokic')
 points(3.9, 3.7, col = 'red')
 text(3.9, 5, 'Embiid')
+title('Raptor Ratings for NBA Centers')
 ```
 
