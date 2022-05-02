@@ -95,3 +95,19 @@ title('Denver Nuggets')
 points(8.590943, 5.868475, col = 'blue')
 ```
 
+```{r}
+embiid <- c(3.9, 3.7)
+
+sixers_data_update <- sixers_data[-(8:10), ]
+
+
+colMeans(nuggets_data[-4, ])
+colMeans(nuggets_data)
+
+
+
+colMeans(sixers_data_update[-7, ])
+colMeans(sixers_data_update)
+
+```
+
