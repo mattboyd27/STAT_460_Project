@@ -73,3 +73,25 @@ text(6, 2, 'Curry')
 title('Raptor Ratings for NBA Players')
 ```
 
+```{r}
+player_data %>%
+  filter(TM == 'DEN') %>%
+  select(c(raptor_offense, raptor_defense)) -> nuggets_data
+ 
+player_data %>%
+  filter(TM == 'PHI') %>%
+  select(c(raptor_offense, raptor_defense)) -> sixers_data 
+
+plot(sixers_data[, 1], sixers_data[, 2], xlab = 'Raptor Offense', ylab = 'Raptor Defense', xlim = c(-7, 5))
+title('Philadelphia 76ers')
+points(3.9, 3.7, col = 'red')
+
+
+```
+
+```{r}
+plot(nuggets_data[, 1], nuggets_data[, 2], xlab = 'Raptor Offense', ylab = 'Raptor Defense')
+title('Denver Nuggets')
+points(8.590943, 5.868475, col = 'blue')
+```
+
