@@ -111,3 +111,13 @@ colMeans(sixers_data_update)
 
 ```
 
+```{r}
+embiid <- c(3.9, 3.7)
+jokic <- c(8.590943, 5.868475)
+
+nba_inv <- solve(nba_cov)
+
+sqrt(t(jokic - nba_means) %*% nba_inv %*% (jokic - nba_means))
+sqrt(t(embiid - nba_means) %*% nba_inv %*% (embiid - nba_means))
+```
+
