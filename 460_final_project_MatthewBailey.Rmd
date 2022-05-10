@@ -1,0 +1,770 @@
+---
+title: "460 final project"
+author: "Matthew Bailey"
+date: '2022-04-30'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r}
+library(ggrepel)
+
+
+library(ggplot2)
+
+
+final_df <- na.omit(final_df)
+
+players <- c('CJ McCollum', 'Carmelo Anthony', 'Chris Paul', 'Damian Lillard', 'DeAndre Jordan', 'Giannis Antetokounmpo', 'Isaiah Thomas', 'Kevin Porter Jr.', 'Kyle Kuzma', 'Kyrie Irving', 'LeBron James', 'Michael Porter Jr.', 'Nikola Jokic', 'Paul George')
+                         
+
+plot1 <- ggplot(final_df, aes(x = mp, y = raptor_offense, label=ifelse(player_name %in% players, player_name, NA))) + geom_point()
+
+plot1 +  geom_label_repel(max.overlaps = Inf) + xlab('Total Minutes Played') + ylab('RAPTOR Offense')
+
+
+
+ggplot(final_df) + geom_bar(aes(x = POS, fill = POS)) + xlab('Position') + ylab('Frequency')
+
+
+plot2 <- ggplot(final_df, aes(x = mp, y = raptor_defense, label=ifelse(player_name %in% players, player_name, NA))) + geom_point()
+plot2 +  geom_label_repel(max.overlaps = Inf) + xlab('Total Minutes Played') + ylab('RAPTOR Defense')
+
+
+plot3 <- ggplot(final_df, aes(x = POS, y = FG3, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('3 point shots made (per 36 mins)')
+
+plot3 + ggtitle('3 point makes by Position')
+
+
+plot4 <- ggplot(final_df, aes(x = POS, y = FG2, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('2 point shots made (per 36 mins)')
+
+plot4
+
+
+plot5 <- ggplot(final_df, aes(x = POS, y = FT, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('Free throws made (per 36 mins)')
+
+plot5
+
+plot6 <- ggplot(final_df, aes(x = POS, y = ORB, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('Offensive Rebounds (per 36 mins)')
+
+plot6
+
+plot7 <- ggplot(final_df, aes(x = POS, y = DRB, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('Defensive Rebounds (per 36 mins)')
+
+plot7
+
+
+plot8 <- ggplot(final_df, aes(x = POS, y = STL, fill = POS)) + geom_boxplot() + xlab('Position') + ylab('Steals (per 36 mins)')
+
+plot8
+
+```
+
+
+
+
+
+
+
+
+
+manova part
+
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+
+player_type_manova <- manova(cbind(FG3, FG2, FT, ORB, DRB, STL) ~ factor(POS), data = final_df)
+
+temp <- summary(player_type_manova, test = 'Wilks')
+
+temp
+
+```
+
+
+
+Pairwise comparisons
+
+
+```{r}
+
+# 1
+
+# C versus PF
+
+
+alphastar <- 0.05/10
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'C', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'PF', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions C and PF ($T^2 = 9.69$, critical value = 25.45). 
+
+
+
+```{r}
+
+# 2
+
+# C versus PG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'C', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'PG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions C and PG ($T^2 = 40.05$, critical value = 25.45). 
+
+
+
+```{r}
+
+
+# 3
+
+# C versus SF
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'C', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SF', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions C and SF ($T^2 = 16.52$, critical value = 25.45).
+
+
+```{r}
+
+
+# 4
+
+# C versus SG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'C', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+
+
+
+```
+
+At a significance level $\alpha = 0.05$, we reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions C and SG ($T^2 = 31.79$, critical value = 25.45).
+
+
+```{r}
+
+
+# 5
+
+# PF versus PG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'PF', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'PG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions PF and PG ($T^2 = 19.19$, critical value = 22.85).
+
+
+
+```{r}
+
+
+
+
+# 6
+
+# PF versus SF
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'PF', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SF', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions PF and SF ($T^2 = 1.74$, critical value = 22.85).
+
+
+```{r}
+
+# 7
+
+# PF versus SG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'PF', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions PF and SG ($T^2 = 10.99$, critical value = 22.85).
+
+
+
+
+```{r}
+
+
+# 8
+
+# PG versus SF
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'PG', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SF', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+```
+
+
+At a significance level $\alpha = 0.05$, we reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions PG and SF ($T^2 = 26.67$, critical value = 23.98).
+
+
+
+```{r}
+
+# 9
+  
+# PG versus SG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'PG', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+
+
+```
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions PG and SF ($T^2 = 6.69$, critical value = 23.98).
+
+
+```{r}
+
+
+# 10
+
+# SF versus SG
+
+subset_df <- data.frame(final_df$POS, final_df$FG3, final_df$FG2, final_df$FT, final_df$ORB, final_df$DRB, final_df$STL)
+
+colnames(subset_df) <- c('POS', 'FG3', 'FG2', 'FT', 'ORB', 'DRB', 'STL')
+
+
+#subset_df[,2:7]
+
+X1 <- as.matrix(subset_df[subset_df$POS == 'SF', 2:7])
+
+X2 <- as.matrix(subset_df[subset_df$POS == 'SG', 2:7])
+
+
+n1 <- dim(X1)[1]
+
+n2 <- dim(X2)[2]
+
+p = dim(X1)[2]
+
+
+delta0 <- rep(0, p)
+
+x1_bar <- colMeans(X1)
+
+x2_bar <- colMeans(X2)
+
+
+S1 <- cov(X1)
+
+
+S2 <- cov(X2)
+
+S_pooled <- ((n1 - 1)*S1 + (n2 - 1)*S2)/ (n1 + n2 -2)
+
+
+T_sq = t(x1_bar - x2_bar - delta0) %*% solve((1/n1 + 1/n2)*S_pooled) %*% (x1_bar - x2_bar - delta0)
+
+
+crit_val <- (n1 + n2 - 2)*p /(n1 + n2 - p - 1)*qf(p = 1 - alphastar, df1 = p, df2 = n1 + n2 - p - 1)
+
+
+T_sq; crit_val; T_sq > crit_val
+
+
+
+```
+
+At a significance level $\alpha = 0.05$, we fail to reject the null hypothesis that the average characteristics (3 point shots made per 36 minutes, 2 point shots made per 36 minutes, Free throws (1pt) made per 36 minutes, Offensive Rebounds per 36 minutes, Defensive Rebounds per 36 minutes and Steals per 36 minutes) of NBA players are the same across the two positions SF and SG ($T^2 = 6.14$, critical value = 22.70).
+
+
+
+Table for results
+
+
+```{r}
+
+library(knitr)
+library(kableExtra)
+
+
+comparisons <- c('C - PF', 'C - PG', 'C - SF', 'C - SG', 'PF - PG', 'PF - SF', 'PF - SG', 'PG - SF', 'PG - SG', 'SF - SG')
+
+
+conclusion <- c('FTR', 'Reject',  'FTR', 'Reject', 'FTR', 'FTR', 'FTR', 'Reject', 'FTR', 'FTR')
+
+
+test_stat <- c(9.69, 40.05, 16.52, 31.79, 19.19, 1.74, 10.99, 26.67, 6.69, 6.14)
+
+
+crit <- c(25.45, 25.45, 25.54, 25.54, 22.85, 22.85, 22.85, 23.98, 23.98, 22.70)
+
+
+
+cols <- c('Comparison', 'Conclusion', 'Test Statistic', 'Critical Value')
+
+kable_obj <- cbind(comparisons, conclusion, test_stat, crit)
+
+
+kable <- kable(kable_obj, col.names = cols, align = rep('c', 4), booktabs = T) %>%
+  kable_styling(font_size = 10, latex_options = 'HOLD_position')
+
+kable
+
+
+```
+
+
+
+
+
+
+$$  H_0: \boldsymbol{\mu_{C}} = \boldsymbol{\mu_{PF}} = \boldsymbol{\mu_{PG}} = \boldsymbol{\mu_{SF}} = \boldsymbol{\mu_{SG}} = ...  = \boldsymbol{\mu_{SG-PG}}$$
+
+$$ H_A:$$
+
+
+
+
+```{r}
+
+
+library(heplots)
+
+player_type_manova_residuals <- resid(player_type_manova)
+
+
+library(MVN)
+result <- mvn(data = player_type_manova_residuals, multivariatePlot = "qq")
+
+
+boxM(cbind(FG3, FG2, FT, ORB, DRB, STL) ~ factor(POS), data = final_df)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
