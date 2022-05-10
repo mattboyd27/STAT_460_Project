@@ -1,0 +1,42 @@
+---
+title: "Final Project"
+author: "Jacob Thompson"
+date: '2022-05-02'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(devtools)
+library(tidyverse)
+library(broom)
+library(readr)
+library(ggbiplot)
+```
+
+```{r}
+clustering_df <- read_csv("STAT_460_Project-main/clustering_df.csv",
+    col_types = cols(...1 = col_skip(), player_height_inches = col_skip(), 
+        player_weight = col_skip(), raptor_offense = col_skip(), 
+        raptor_total = col_skip(), FG = col_skip(), 
+        FGA = col_skip(), FG_pct = col_skip(), 
+        FG3 = col_skip(), FGA3 = col_skip(), 
+        FG3_pct = col_skip(), FG2 = col_skip(), 
+        FGA2 = col_skip(), FG2_pct = col_skip(), 
+        FT = col_skip(), FTA = col_skip(), 
+        FT_pct = col_skip(), ORB = col_skip(), 
+        TRB = col_skip(), AST = col_skip(), 
+        TOV = col_skip(), PTS = col_skip()),
+        row.names= ("player_name"))
+
+def_data <- as.matrix(clustering_df[,2:6])
+
+set.seed(460)
+nba_kmeans3_1 <- kmeans(x= def_data, centers = 4)
+nba_kmeans3_2 <- kmeans(x= def_data, centers = 4)
+
+bp <- ggbiplot(prcomp(def_data), labels = rownames(clustering_df$player_name), groups = as.factor(nba_kmeans3_1$cluster))
+bp2 <- ggbiplot(prcomp(def_data), labels = rownames(clustering_df$player_name), groups = as.factor(nba_kmeans3_2$cluster))
+bp2 + theme_classic()
+bp + theme_classic()
